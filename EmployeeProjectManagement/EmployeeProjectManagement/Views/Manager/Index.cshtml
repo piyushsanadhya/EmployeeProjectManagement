@@ -1,0 +1,332 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+
+@section styles{
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css">
+    <link href="https://unpkg.com/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker3.min.css" rel="stylesheet">
+}
+<div class="row">
+    <div class="col-md-offset-2 col-md-8">
+        <h2 class="text-center">Project Assignment Details</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <span>Filter using joining date of employees</span>
+        <div class="input-daterange input-group">
+
+            <input type="text" readonly class="input-sm form-control" id="startdate" name="start" placeholder="start date" />
+            <input type="text" readonly class="input-sm form-control" id="enddate" name="end" placeholder="end date" />
+            <a class="btn btn-primary pull-right" href="@Url.Action("Projects","Manager")">See/Assign Projects</a>
+            <button class="btn btn-primary pull-right" type="button" id="btnSearch" style="margin-right:10px">Search</button>
+        </div>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-md-12">
+        <table class="table table-responsive table-striped table-bordered" id="tblProjects" style="width:100%">
+            <thead>
+                <tr>
+                    <td class="text-center">Project Name</td>
+                    <td class="text-center">Employee Name</td>
+                    <td class="text-center">Joining Date</td>
+                    <td class="text-center">Cost</td>
+                    <td class="text-center">Operation</td>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="editProjectModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Edit details</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success" id="successmsg" style="display:none">
+                    <p>Saved Successfully.</p>
+                </div>
+                <div class="alert alert-danger" id="errormsg" style="display:none">
+                    <p>An error has occurred. Please try again later.</p>
+                </div>
+                <div class="row text-center loader" style="display:none">
+                    <img src="~/Public/Images/loader.gif" />
+                </div>
+                <form id="projectDetailsForm" action="@Url.Action("ProjectEmployeeDetails","Manager")">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Employee Name</label>
+                                <input type="hidden" name="EmployeeId" class="empid" />
+                                <input type="hidden" name="ProjectId" class="projid" />
+                                <div class="col-sm-8">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <input type="text" class="form-control firstname" name="FirstName" id="FirstName" placeholder="First Name" data-val="true" data-val-required="This field is required"/>
+                                            <span class="text-danger" data-valmsg-for="FirstName" data-valmsg-replace="true"></span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <input type="text" class="form-control lastname" name="LastName" id="LastName" placeholder="Last Name" data-val="true" data-val-required="This field is required"/>
+                                            <span class="text-danger" data-valmsg-for="LastName" data-valmsg-replace="true"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Project Name</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control projname" name="ProjectName" id="ProjectName" data-val="true" data-val-required="This field is required" />
+                                    <span class="text-danger" data-valmsg-for="ProjectName" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Project cost</label>
+                                <div class="col-sm-8">
+                                    <input type="number" min="0" class="form-control cost" name="Cost" id="Cost" data-val="true" data-val-required="This field is required" />
+                                    <span class="text-danger" data-valmsg-for="Cost" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Employee Joining Date</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control joiningdate" readonly name="JoiningDate" id="JoiningDate"/>
+                                    <span class="text-danger" data-valmsg-for="JoiningDate" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btnSaveProject">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="deleteProjectModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete?</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row text-center loader" style="display:none">
+                    <img src="~/Public/Images/loader.gif" />
+                </div>
+                <div class="row">
+                    <div class="alert alert-success" id="successdelete" style="display:none">
+                        <p>Deleted Successfully.</p>
+                    </div>
+                    <div class="alert alert-danger" id="errorDelete" style="display:none">
+                        <p>An error has occurred.</p>
+                    </div>
+                </div>
+                <div class="row" id="deleteConfirm">
+                    <div class="col-md-12">
+                        <p>Are you sure you want to delete the <span class="projname"></span> assigned to the <span class="empname"></span>? it cannot be undone..</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" id="btnDeleteProject">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+    <script src="https://unpkg.com/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+    <script>
+        let table;
+        $(document).ready(function () {
+            table = $('#tblProjects').DataTable({
+                "oLanguage": { "sEmptyTable": "No Projects added." },
+                "processing": true,
+                "serverSide": true,
+                "ajax": {
+                    url: '/manager/GetEmployees',
+                    type: 'POST',
+                    data: function (data) {
+                        data.startdate = $("#startdate").val();
+                        data.enddate = $("#enddate").val();
+                    }
+                },
+                "columnDefs": [
+                    {
+                        "targets": 0,
+                        // "className": "dt-body-center",
+                        "render": function (data, type, full, meta) {
+                            return `${full.ProjectName}`;
+                        }
+                    },
+                    {
+                        "targets": 1,
+                        // "className": "dt-body-center",
+                        "render": function (data, type, full, meta) {
+                            return `${full.FirstName} ${full.LastName}`;
+                        }
+                    },
+                    {
+                        "targets": 4,
+                        "searchable": false,
+                        "orderable": false,
+                        // "className": "dt-body-center",
+                        "render": function (data, type, full, meta) {
+                            return `<button type="button" class="btn btn-primary btnEdit" data-empid='${full.EmployeeId}' data-projid='${full.ProjectId}' data-projname='${full.ProjectName}' data-firstname='${full.FirstName}' data-lastname='${full.LastName}' data-joiningdate='${full.JoiningDate}' data-cost='${full.Cost}'><i class="glyphicon glyphicon-edit"></i></button> | <button type="button" class="btn btn-danger btnDelete" data-empid='${full.EmployeeId}' data-projid='${full.ProjectId}' data-projname='${full.ProjectName}' data-firstname='${full.FirstName}' data-lastname='${full.LastName}'><i class="glyphicon glyphicon-trash"></i></button>`;
+                        }
+                    }],
+                "columns": [
+                    { "data": "ProjectName", "className": "text-center"},
+                    { "data": "FirstName", "className": "text-center"},
+                    { "data": "JoiningDate", "className": "text-center"},
+                    { "data": "Cost", "className": "text-center" },
+                    {
+                        "data": "ProjectId","className":"text-center"
+                    }
+                ]
+            });
+
+            var daterangepicker= $('.input-daterange').datepicker({
+                format: "dd/mm/yyyy"
+            });
+
+            var datepicker=  $('.joiningdate').datepicker({
+                format: "dd/mm/yyyy"
+            });
+
+            $("#btnSearch").on("click", function () {
+                table.ajax.reload();
+            })
+
+            $("#tblProjects").on("click", ".btnEdit", function () {
+                $(".loader").hide();
+                $("#errormsg").hide();
+                $("#successmsg").hide();
+
+                var empid = $(this).data('empid');
+                var projid = $(this).data('projid');
+                var projname = $(this).data('projname');
+                var firstname = $(this).data('firstname');
+                var lastname = $(this).data('lastname');
+                var joiningdate = $(this).data('joiningdate');
+                var cost = $(this).data('cost');
+
+                $(".empid").val(empid);
+                $(".projid").val(projid);
+                $("input.projname").val(projname);
+                $("input.firstname").val(firstname);
+                $("input.lastname").val(lastname);
+                $(".cost").val(cost);
+                $(".joiningdate").val(joiningdate);
+
+                datepicker.datepicker('setDate', joiningdate);
+
+                $("#editProjectModal").modal('show');
+            });
+
+            $("#tblProjects").on("click", ".btnDelete", function () {
+                $("#deleteConfirm").show();
+                $(".loader").hide();
+                $("#successdelete").hide();
+                $("#errorDelete").hide();
+
+                var empid = $(this).data('empid');
+                var projid = $(this).data('projid');
+                var projname = $(this).data('projname');
+                var firstname = $(this).data('firstname');
+                var lastname = $(this).data('lastname');
+
+                $(".empid").val(empid);
+                $(".projid").val(projid);
+
+                $("span.projname").html(projname);
+                $("span.empname").html(firstname + ' ' + lastname);
+
+                $("#deleteProjectModal").modal('show');
+            });
+
+            $("#btnSaveProject").on("click", function () {
+                $("#errormsg").hide();
+                var form = $("#projectDetailsForm")
+                    .removeData("validator") /* added by the raw jquery.validate plugin */
+                    .removeData("unobtrusiveValidation");  /* added by the jquery unobtrusive plugin*/
+
+                $.validator.unobtrusive.parse(form);
+
+                if ($("#projectDetailsForm").valid()) {
+                    $("#projectDetailsForm").hide();
+                    $(".loader").show();
+
+                    var data = {
+                        "EmployeeId": $(".empid").val(),
+                        "ProjectId": $(".projid").val(),
+                        "ProjectName": $("input.projname").val(),
+                        "FirstName": $("input.firstname").val(),
+                        "LastName": $("input.lastname").val(),
+                        "Cost": $(".cost").val(),
+                        "JoiningDate": $(".joiningdate").val()
+                    }
+
+                    $.ajaxPost('@Url.Action("ProjectEmployeeDetails", "Manager")', data, function (data) {
+                        if (data.Success == true) {
+                            $(".loader").hide();
+                            $("#successmsg").show();
+                            table.ajax.reload();
+                            $("#projectDetailsForm").show();
+                            setTimeout(function () {
+                                $("#editProjectModal").modal('hide');
+                                $(".loader").hide();
+                                $("#successmsg").hide();
+                            }, 2000);
+                        }
+                        else {
+                            $("#projectDetailsForm").show();
+                            $(".loader").hide();
+                            $("#errormsg").show();
+                        }
+                    })
+                }
+            });
+
+            $("#btnDeleteProject").on("click", function () {
+                $("#deleteConfirm").hide();
+                $(".loader").show();
+                $("#errorDelete").hide();
+                $("#successdelete").hide();
+
+                var data = {
+                    "EmployeeId": $(".empid").val(),
+                    "ProjectId": $(".projid").val()
+                }
+
+                $.ajaxPost("@Url.Action("DeleteProjectEmployeeDetails", "Manager")", data, function (data) {
+                    if (data.Success == true) {
+                        $(".loader").hide();
+                        $("#successdelete").show();
+
+                        setTimeout(function () {
+                            $("#deleteProjectModal").modal('hide');
+                            $(".loader").hide();
+                            $("#successdelete").hide();
+                            $("#deleteConfirm").show();
+                        }, 2000);
+                        table.ajax.reload();
+                    }
+                    else {
+                        $("#deleteConfirm").show();
+                        $("#errorDelete").show();
+                        $(".loader").hide();
+                    }
+                })
+            });
+        });
+    </script>
+}
+

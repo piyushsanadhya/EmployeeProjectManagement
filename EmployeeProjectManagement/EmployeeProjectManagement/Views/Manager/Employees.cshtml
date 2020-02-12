@@ -1,0 +1,289 @@
+﻿@{
+    ViewBag.Title = "Add Employees";
+}
+@section styles{
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.css">
+    <link href="https://unpkg.com/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker3.min.css" rel="stylesheet">
+}
+<div class="row">
+    <div class="col-md-offset-2 col-md-8">
+        <h2 class="text-center">Employee Details</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-offset-2 col-md-8">
+        <p class="text-center">Please note that you're adding employees to @ViewBag.ProjectName.</p>
+        <input type="hidden" name="ProjectId" id="ProjectId" value="@ViewBag.ProjectId" />
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <button type="button" class="btn btn-primary pull-right" id="btnAddEmployee">Add Employee</button>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-md-12">
+        <table class="table table-responsive table-striped table-bordered" id="tblEmployees">
+            <thead>
+                <tr>
+                    <td class="text-center">First Name</td>
+                    <td class="text-center">Last Name</td>
+                    <td class="text-center">Joining Date</td>
+                    <td class="text-center">Edit/Delete</td>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="editEmloyeeModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Add/Edit employee details</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success" id="successmsg" style="display:none">
+                    <p>Employee Saved Successfully.</p>
+                </div>
+                <div class="alert alert-danger" id="errormsg" style="display:none">
+                    <p>An error has occurred. Please try again later.</p>
+                </div>
+                <div class="row text-center loader" style="display:none">
+                    <img src="~/Public/Images/loader.gif" />
+                </div>
+                <form id="employeeDetailsForm">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Employee Name</label>
+                                <input type="hidden" name="EmployeeId" class="empid" />
+                                <input type="hidden" name="ProjectId" class="projid" value="@ViewBag.ProjectId" />
+                                <div class="col-sm-8">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <input type="text" class="form-control firstname" name="FirstName" id="FirstName" placeholder="First Name" data-val="true" data-val-required="This field is required" />
+                                            <span class="text-danger" data-valmsg-for="FirstName" data-valmsg-replace="true"></span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <input type="text" class="form-control lastname" name="LastName" id="LastName" placeholder="Last Name" data-val="true" data-val-required="This field is required" />
+                                            <span class="text-danger" data-valmsg-for="LastName" data-valmsg-replace="true"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-4">Employee Joining Date</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control joiningdate" readonly name="JoiningDate" id="JoiningDate" />
+                                    <span class="text-danger" data-valmsg-for="JoiningDate" data-valmsg-replace="true"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="btnSaveEmployee">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="deleteEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete?</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row text-center loader" style="display:none">
+                    <img src="~/Public/Images/loader.gif" />
+                </div>
+                <div class="row">
+                    <div class="alert alert-success" id="successdelete" style="display:none">
+                        <p>Employee Deleted Successfully.</p>
+                    </div>
+                    <div class="alert alert-danger" id="errorDelete" style="display:none">
+                        <p>An error has occurred. Please try again later.</p>
+                    </div>
+                </div>
+                <div class="row" id="deleteConfirm">
+                    <div class="col-md-12">
+                        <p>Are you sure you want to delete the <span class="empname"></span>? It will remove the employee from @ViewBag.ProjectName project.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" id="btnDeleteEmployee">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+    <script src="https://unpkg.com/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+    <script>
+        let table;
+        $(document).ready(function () {
+            table = $('#tblEmployees').DataTable({
+                "oLanguage": { "sEmptyTable": "No Employees added." },
+                "processing": true,
+                "serverSide": true,
+                "ajax": {
+                    url: '/manager/GetEmployeesByProject',
+                    type: 'POST',
+                    data: function (data) {
+                        data.ProjectId = $("#ProjectId").val()
+                    }
+                },
+                "columnDefs": [
+                    {
+                        "targets": 3,
+                        "searchable": false,
+                        "orderable": false,
+                        // "className": "dt-body-center",
+                        "render": function (data, type, full, meta) {
+                            return `<button title="Edit Details" type='button' class="btn btn-primary btnEdit" data-id='${full.Id}' data-firstname='${full.FirstName}' data-lastname='${full.LastName}' data-joiningdate="${full.JoiningDate}"><i class="glyphicon glyphicon-edit"></i></button> | <button title="Delete Employee" type="button" class="btn btn-danger btnDelete" data-id='${full.Id}' data-firstname='${full.FirstName}' data-lastname='${full.LastName}'><i class="glyphicon glyphicon-trash"></i></button>`;
+                        }
+                    }],
+                "columns": [
+                    { "data": "FirstName", "className": "text-center" },
+                    { "data": "LastName", "className": "text-center" },
+                    { "data": "JoiningDate", "className": "text-center" },
+                    { "date": "Id", "className": "text-center" }
+                ]
+            });
+
+            var datepicker = $('.joiningdate').datepicker({
+                format: "dd/mm/yyyy"
+            });
+
+            $("#tblEmployees").on("click", ".btnEdit", function () {
+                $(".loader").hide();
+                $("#errormsg").hide();
+                $("#successmsg").hide();
+                $("#employeeDetailsForm").show();
+
+                var empid = $(this).data('id');
+                var firstname = $(this).data('firstname');
+                var lastname = $(this).data('lastname');
+                var joiningdate = $(this).data('joiningdate');
+
+                $(".firstname").val(firstname);
+                $(".lastname").val(lastname);
+                $(".empid").val(empid);
+                $(".joiningdate").val(joiningdate);
+
+                datepicker.datepicker('setDate', joiningdate);
+
+                $("#editEmloyeeModal").modal('show');
+            });
+
+            $("#tblEmployees").on("click", ".btnDelete", function () {
+                $("#deleteConfirm").show();
+                $(".loader").hide();
+                $("#successdelete").hide();
+                $("#errorDelete").hide();
+
+                var empid = $(this).data('id');
+                var firstname = $(this).data('firstname');
+                var lastname = $(this).data('lastname');
+
+                $(".empid").val(empid);
+                $("span.empname").html(firstname + ' ' + lastname);
+
+                $("#deleteEmployeeModal").modal('show');
+            });
+
+            $("#btnAddEmployee").on("click", function () {
+                $("#employeeDetailsForm").show();
+                $(".loader").hide();
+                $("#errormsg").hide();
+                $("#successmsg").hide();
+
+                $(".empid").val('');
+                $(".firstname").val('');
+                $(".lastname").val('');
+                $(".joiningdate").val('');
+
+                $("#editEmloyeeModal").modal('show');
+            });
+
+            $("#btnSaveEmployee").on("click", function () {
+                $("#errormsg").hide();
+                var form = $("#employeeDetailsForm")
+                    .removeData("validator") /* added by the raw jquery.validate plugin */
+                    .removeData("unobtrusiveValidation");  /* added by the jquery unobtrusive plugin*/
+
+                $.validator.unobtrusive.parse(form);
+
+                if ($("#employeeDetailsForm").valid()) {
+                    $("#employeeDetailsForm").hide();
+                    $(".loader").show();
+
+                    var data = {
+                        "EmployeeId": $(".empid").val(),
+                        "ProjectId": $(".projid").val(),
+                        "FirstName": $("input.firstname").val(),
+                        "LastName": $("input.lastname").val(),
+                        "JoiningDate": $(".joiningdate").val()
+                    }
+
+                    $.ajaxPost('@Url.Action("AddEmployee", "Manager")', data, function (data) {
+                        if (data.Success == true) {
+                            $(".loader").hide();
+                            $("#successmsg").show();
+                            table.ajax.reload();
+                            $("#employeeDetailsForm").show();
+                            setTimeout(function () {
+                                $("#editEmloyeeModal").modal('hide');
+                                $(".loader").hide();
+                                $("#successmsg").hide();
+                            }, 2000);
+                        }
+                        else {
+                            $("#employeeDetailsForm").show();
+                            $(".loader").hide();
+                            $("#errormsg").show();
+                        }
+                    })
+                }
+            });
+
+            $("#btnDeleteEmployee").on("click", function () {
+                $("#deleteConfirm").hide();
+                $(".loader").show();
+                $("#errorDelete").hide();
+                $("#successdelete").hide();
+
+                var data = {
+                    "Id": $(".empid").val()
+                }
+
+                $.ajaxPost("@Url.Action("DeleteEmployee", "Manager")", data, function (data) {
+                    if (data.Success == true) {
+                        $(".loader").hide();
+                        $("#successdelete").show();
+
+                        setTimeout(function () {
+                            $("#deleteEmployeeModal").modal('hide');
+                            $(".loader").hide();
+                            $("#successdelete").hide();
+                            $("#deleteConfirm").show();
+                        }, 2000);
+                        table.ajax.reload();
+                    }
+                    else {
+                        $("#deleteConfirm").show();
+                        $("#errorDelete").show();
+                        $(".loader").hide();
+                    }
+                })
+            });
+        });
+    </script>
+}

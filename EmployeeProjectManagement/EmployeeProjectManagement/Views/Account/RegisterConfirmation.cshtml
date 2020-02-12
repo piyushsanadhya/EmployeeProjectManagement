@@ -1,0 +1,50 @@
+﻿
+@{
+    ViewBag.Title = "RegisterConfirmation";
+}
+
+<div class="row">
+    <div class="offset-md-2 col-md-8">
+        <h3 class="text-center">
+            Hi please select a role to continue.
+        </h3>
+        <p class="text-center"><b>Please choose your role carefully because once selected you can not undo this later.</b></p>
+        <div asp-validation-summary="ModelOnly"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="offset-md-2 col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <img class="card-img-top" src="~/Public/Images/Student.png" alt="Candidate" style="width:50%">
+                @*<div class="card-img-top">
+                        <i class="fas fa-user-circle"></i>
+                    </div>*@
+                <h5 class="card-title text-uppercase">I'm an Employee</h5>
+                <p class="card-text text-uppercase">If you are a fresh candidate and seek to register yourself for assessments or have been assigned one, please sign up here. Welcome to PexiScore.com!</p>
+                <form method="post">
+                    <input type="checkbox" class="invisible" asp-for="Input.IsHR" />
+                    <input type="checkbox" class="invisible" asp-for="Input.IsCandidate" checked />
+                    <button type="submit" class="btn btn-primary" title="Proceed as Candidate">Proceed as Candidate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <img class="card-img-top" src="~/Public/Images/hr.png" alt="Candidate" style="width:50%">
+                @*<div class="card-img-top">
+                        <i class="fas fa-user-circle"></i>
+                    </div>*@
+                <h5 class="card-title text-uppercase">I'm a HR Manager</h5>
+                <p class="card-text text-uppercase">If you are a Hiring Manager who wants to explore PexiScore.com for assessing candidates, please sign up here. Welcome to smart hiring!</p>
+                <form method="post">
+                    <input type="checkbox" class="invisible" asp-for="Input.IsHR" checked />
+                    <input type="checkbox" class="invisible" asp-for="Input.IsCandidate" />
+                    <button type="submit" class="btn btn-primary" title="Proceed as HR">Proceed as Recruiter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
